@@ -58,7 +58,25 @@ async function run() {
     const orderCollection = client.db('Tanex_International').collection('order')
     
 
+    // user related API
+    app.post('/users', async(req, res)=>{
+      const user= req.body
+      // insert email if it doesn't exist
+      // it can be done in various ways (email unique, upsert, simple checking)
+      const query = { email: user.email }
+      const existingUser = await userCollection.findOne(query)
+      if (existingUser) {
+        return res.send({ message: "user already exists", insertedId: null })
+      }
+      const result = await userCollection.insertOne(user)
+      res.send(result)
+    })
     
+    app.get('/users', async(req, res)=>{
+      const result= await userCollection.find().toArray()
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
