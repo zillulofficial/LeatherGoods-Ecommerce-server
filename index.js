@@ -1,10 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-// const jwt = require('jsonwebtoken')
-// const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 require('dotenv').config()
-const port = process.env.port || 9000
+const port = process.env.port || 5000
 const app = express()
 
 // middlewares
@@ -14,28 +14,28 @@ app.use(cors({
     optionsSuccessStatus: 200
   }))
   app.use(express.json())
-//   app.use(cookieParser())
+  app.use(cookieParser())
 
 // Custom middlewares
-// const cookieOption = {
-//     httpOnly: true,
-//     sameSite: process.env.NODE_ENV === "production" ? 'none' : "strict",
-//     secure: process.env.NODE_ENV === "production" ? true : false
-//   }
-// const verifyToken = (req, res, next) => {
-//     const token = req?.cookies?.token
-//     // console.log("token in the middleware: ", token);
-//     if (!token) {
-//       return res.status(401).send({ message: "Unauthorized access" })
-//     }
-//     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-//       if (err) {
-//         return res.status(401).send({ message: "Unauthorized access" })
-//       }
-//       req.user = decoded
-//       next()
-//     })
-//   }
+const cookieOption = {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? 'none' : "strict",
+    secure: process.env.NODE_ENV === "production" ? true : false
+  }
+const verifyToken = (req, res, next) => {
+    const token = req?.cookies?.token
+    // console.log("token in the middleware: ", token);
+    if (!token) {
+      return res.status(401).send({ message: "Unauthorized access" })
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(401).send({ message: "Unauthorized access" })
+      }
+      req.user = decoded
+      next()
+    })
+  }
   
   
 
@@ -53,10 +53,39 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    const userCollection = client.db('Tanex_International').collection('user')
-    const menuCollection = client.db('Tanex_International').collection('menu')
-    const orderCollection = client.db('Tanex_International').collection('order')
+
+    const userCollection = client.db('tanexInternational').collection('user')
+    const menuCollection = client.db('tanexInternational').collection('menu')
+    const orderCollection = client.db('tanexInternational').collection('order')
     
+    // middleware
+    // use verify admin after verifying token
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.user?.email
+      const query = { email: email }
+      const user = await userCollection.findOne(query)
+      const isAdmin = user?.role === "admin"
+      if (!isAdmin) {
+        return res.status(403).send({ message: "Forbidden  access" })
+      }
+      next()
+    }
+
+    // JWT related API
+    app.post('/jwt', async (req, res) => {
+      const user = req.body
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '365d'
+      })
+      res
+        .cookie('token', token, cookieOption)
+        .send({ success: true })
+    })
+    // token removal after user logs out
+    app.post('/logout', async (req, res) => {
+      const user = req.body
+      res.clearCookie('token', { ...cookieOption, maxAge: 0 }).send({ success: true })
+    })
 
     // user related API
     app.post('/users', async(req, res)=>{
@@ -69,9 +98,10 @@ async function run() {
         return res.send({ message: "user already exists", insertedId: null })
       }
       const result = await userCollection.insertOne(user)
+      console.log(result);
       res.send(result)
     })
-    
+
     app.get('/users', async(req, res)=>{
       const result= await userCollection.find().toArray()
       res.send(result)
