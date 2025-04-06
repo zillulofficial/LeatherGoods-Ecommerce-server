@@ -107,6 +107,24 @@ async function run() {
       res.send(result)
     })
 
+    app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await userCollection.deleteOne(query)
+      res.send(result)
+    })
+    app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id) }
+      const updateDoc = {
+        $set: {
+          role: "admin"
+        }
+      };
+      const result = await userCollection.updateOne(filter, updateDoc)
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
