@@ -55,7 +55,7 @@ async function run() {
   try {
 
     const userCollection = client.db('tanexInternational').collection('user')
-    const menuCollection = client.db('tanexInternational').collection('menu')
+    const itemCollection = client.db('tanexInternational').collection('item')
     const orderCollection = client.db('tanexInternational').collection('order')
 
     // middleware
@@ -155,6 +155,19 @@ async function run() {
       const id = req.params.id
       const query = { _id: new ObjectId(id) }
       const result = await orderCollection.deleteOne(query)
+      res.send(result)
+    })
+
+    // Items Related API
+    // add an items
+    app.post('/items', async(req, res)=>{
+      const item= req.body
+      const result= await itemCollection.insertOne(item)
+      res.send(result)
+    })
+    // Read an items
+    app.get('/items', async(req, res)=>{
+      const result= await itemCollection.find().toArray()
       res.send(result)
     })
     // Send a ping to confirm a successful connection
