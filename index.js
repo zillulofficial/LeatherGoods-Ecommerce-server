@@ -87,6 +87,7 @@ async function run() {
       res.clearCookie('token', { ...cookieOption, maxAge: 0 }).send({ success: true })
     })
 
+
     // user related API
     app.post('/users', async (req, res) => {
       const user = req.body
@@ -127,7 +128,7 @@ async function run() {
       const result = await userCollection.deleteOne(query)
       res.send(result)
     })
-    app.patch('/users/admin/:id', async (req, res) => {
+    app.patch('/users/admin/:id',verifyToken, async (req, res) => {
       const id = req.params.id
       const filter = { _id: new ObjectId(id) }
       const updateDoc = {
@@ -139,15 +140,16 @@ async function run() {
       res.send(result)
     })
 
+
     // Order related API
-    app.post('/orders', async(req, res)=>{
-      const order= req.body
-      const result= await orderCollection.insertOne(order)
+    app.post('/orders', async (req, res) => {
+      const order = req.body
+      const result = await orderCollection.insertOne(order)
       res.send(result)
     })
     // fetch all the order data
-    app.get('/orders', async(req, res)=>{
-      const result= await orderCollection.find().toArray()
+    app.get('/orders', async (req, res) => {
+      const result = await orderCollection.find().toArray()
       res.send(result)
     })
     // delete an order
@@ -158,16 +160,17 @@ async function run() {
       res.send(result)
     })
 
+
     // Items Related API
     // add an items
-    app.post('/items', async(req, res)=>{
-      const item= req.body
-      const result= await itemCollection.insertOne(item)
+    app.post('/items', async (req, res) => {
+      const item = req.body
+      const result = await itemCollection.insertOne(item)
       res.send(result)
     })
     // Read an items
-    app.get('/items', async(req, res)=>{
-      const result= await itemCollection.find().toArray()
+    app.get('/items', async (req, res) => {
+      const result = await itemCollection.find().toArray()
       res.send(result)
     })
     // loading a single item
@@ -177,7 +180,7 @@ async function run() {
       res.send(result)
     })
     // delete a single item
-    app.delete('/items/:id', verifyToken, verifyAdmin, async (req, res) => {
+    app.delete('/items/:id', verifyAdmin, async (req, res) => {
       const id = req.params.id
       const query = { _id: new ObjectId(id) }
       const result = await itemCollection.deleteOne(query)
@@ -188,7 +191,6 @@ async function run() {
     app.put('/item/:id', async (req, res) => {
       const id = req.params.id
       const data = req.body
-      console.log(id);
       const query = { _id: new ObjectId(id) }
       const options = { upsert: true }
       const updateDoc = {
