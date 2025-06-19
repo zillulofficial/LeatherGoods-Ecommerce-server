@@ -246,7 +246,7 @@ async function run() {
           res.redirect(
             `https://leather-goods-ecommerce-client.vercel.app/payment/success/${req.params?.tranId}`
           );
-        }git 
+        }
       });
 
       app.post("/payment/fail/:tranId", async (req, res) => {
