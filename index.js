@@ -10,7 +10,7 @@ const app = express()
 
 // middlewares
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: ['http://localhost:5173', 'https://leather-goods-ecommerce-client.vercel.app'],
   credentials: true,
   optionsSuccessStatus: 200
 }))
@@ -244,9 +244,9 @@ async function run() {
 
         if (result.modifiedCount > 0) {
           res.redirect(
-            `http://localhost:5173/payment/success/${req.params?.tranId}`
+            `https://leather-goods-ecommerce-client.vercel.app/payment/success/${req.params?.tranId}`
           );
-        }
+        }git 
       });
 
       app.post("/payment/fail/:tranId", async (req, res) => {
@@ -256,7 +256,7 @@ async function run() {
 
         if (result.deletedCount) {
           res.redirect(
-            `http://localhost:5173/payment/failiure/${req.params?.tranId}`
+            `https://leather-goods-ecommerce-client.vercel.app/payment/failiure/${req.params?.tranId}`
           );
         }
       });
