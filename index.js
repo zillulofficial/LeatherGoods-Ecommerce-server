@@ -187,7 +187,7 @@ async function run() {
         currency: defaultData?.currency,
         tran_id: tran_id, // use unique tran_id for each api call
         success_url: `https://leather-goods-ecommerce-server.vercel.app/payment/success/${tran_id}`,
-        fail_url: `https://leather-goods-ecommerce-server.vercel.app/payment/fail/${tran_id}`,
+        fail_url: `https://leather-goods-ecommerce-server.vercel.app/payment/failiure/${tran_id}`,
         cancel_url: "http://localhost:3030/cancel",
         ipn_url: "http://localhost:3030/ipn",
         shipping_method: "Courier",
