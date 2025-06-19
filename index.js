@@ -10,7 +10,7 @@ const app = express()
 
 // middlewares
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://leather-goods-ecommerce-client.vercel.app'],
+  origin: ['https://leather-goods-ecommerce-client.vercel.app', 'https://leather-goods-ecommerce-client.vercel.app'],
   credentials: true,
   optionsSuccessStatus: 200
 }))
