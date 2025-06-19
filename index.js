@@ -249,7 +249,7 @@ async function run() {
         }
       });
 
-      app.post("/payment/fail/:tranId", async (req, res) => {
+      app.post("/payment/failiure/:tranId", async (req, res) => {
         const result = await purchaseCollection.deleteOne({
           transactionId: req.params?.tranId,
         });
