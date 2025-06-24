@@ -186,8 +186,10 @@ async function run() {
         total_amount: defaultData?.price,
         currency: defaultData?.currency,
         tran_id: tran_id, // use unique tran_id for each api call
-        success_url: `https://leather-goods-ecommerce-server.vercel.app/payment/success/${tran_id}`,
-        fail_url: `https://leather-goods-ecommerce-server.vercel.app/payment/failiure/${tran_id}`,
+        success_url: `http://localhost:5000/payment/success/${tran_id}`,
+        fail_url: `http://localhost:5000/payment/failiure/${tran_id}`,
+        // success_url: `https://leather-goods-ecommerce-server.vercel.app/payment/success/${tran_id}`,
+        // fail_url: `https://leather-goods-ecommerce-server.vercel.app/payment/failiure/${tran_id}`,
         cancel_url: "http://localhost:3030/cancel",
         ipn_url: "http://localhost:3030/ipn",
         shipping_method: "Courier",
@@ -244,7 +246,8 @@ async function run() {
 
         if (result.modifiedCount > 0) {
           res.redirect(
-            `https://leather-goods-ecommerce-client.vercel.app/payment/success/${req.params?.tranId}`
+            `http://localhost:5173/payment/success/${req.params?.tranId}`
+            // `https://leather-goods-ecommerce-client.vercel.app/payment/success/${req.params?.tranId}`
           );
         }
       });
@@ -256,15 +259,16 @@ async function run() {
 
         if (result.deletedCount) {
           res.redirect(
-            `https://leather-goods-ecommerce-client.vercel.app/payment/failiure/${req.params?.tranId}`
+            `http://localhost:5173/payment/failiure/${req.params?.tranId}`
+            // `https://leather-goods-ecommerce-client.vercel.app/payment/failiure/${req.params?.tranId}`
           );
         }
       });
 
     })
     // get all purchase data
-    app.get('/purchase', async(req, res)=>{
-      const result= await purchaseCollection.find().toArray()
+    app.get('/purchase', async (req, res) => {
+      const result = await purchaseCollection.find().toArray()
       res.send(result)
     })
     // delete one purchase
@@ -283,10 +287,52 @@ async function run() {
       const result = await itemCollection.insertOne(item)
       res.send(result)
     })
-    // Read an items
+    // loading all data
     app.get('/items', async (req, res) => {
       const result = await itemCollection.find().toArray()
       res.send(result)
+    })
+    // pagination API
+    // load all items for pagination
+    app.get('/allItems', async (req, res) => {
+      const page = parseInt(req.query.page) - 1
+      const size = parseInt(req.query.size)
+      const filter = req.query.filter
+      const sort = req.query.sort
+      const search = req.query.search || ''
+      console.log(filter, sort, search);
+
+      let query = {};
+
+      if (search && search.trim() !== '') {
+        query.name = { $regex: search.toString(), $options: 'i' };
+      }
+
+      if (filter && filter.trim() !== '') {
+        query.category = filter;
+      }
+
+      let option = {}
+      if (sort) option = { sort: { deadline: sort === 'asc' ? 1 : -1 } }
+      const result = await itemCollection.find(query, option).skip(page * size).limit(size).toArray()
+      res.send(result)
+    })
+    // load all data count
+    app.get('/itemsCount', async (req, res) => {
+      const filter = req.query.filter
+      const search = req.query.search
+
+      let query = {};
+
+      if (search) {
+        query.title = { $regex: search.toString(), $options: 'i' };
+      }
+
+      if (filter) {
+        query.category = filter;
+      }
+      const count = await itemCollection.countDocuments(query)
+      res.send({ count })
     })
     // loading a single item
     app.get('/item/:id', async (req, res) => {
