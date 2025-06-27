@@ -63,6 +63,8 @@ async function run() {
     const itemCollection = client.db('leather_Ecommerce').collection('item')
     const orderCollection = client.db('leather_Ecommerce').collection('order')
     const purchaseCollection = client.db('leather_Ecommerce').collection('purchase')
+    const cartCollection = client.db('leather_Ecommerce').collection('cart')
+    const wishlistCollection = client.db('leather_Ecommerce').collection('wishlist')
 
     // middleware
     // use verify admin after verifying token
@@ -166,22 +168,58 @@ async function run() {
       res.send(result)
     })
 
+    // cart related API
+    // posting data to cart collection
+    app.post('/carts', async (req, res) => {
+      const item = req.body
+      const result = await cartCollection.insertOne(item)
+      res.send(result)
+    })
+    // getting all data from cart collection
+    app.get('/carts', async (req, res) => {
+      const email = req.query.email
+      const query = { email: email }
+      const result = await cartCollection.find(query).toArray()
+      res.send(result)
+    })
+    app.delete('/carts/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: id }
+      const result = await cartCollection.deleteOne(query)
+      res.send(result)
+    })
+    app.delete('/carts', async (req, res) => {
+      const result = await cartCollection.deleteMany({})
+      res.send(result)
+    })
+
+    // wishlist related API
+    // posting data to wishlist collection
+    app.post('/wishlist', async (req, res) => {
+      const item = req.body
+      const result = await wishlistCollection.insertOne(item)
+      res.send(result)
+    })
+    // getting all data from cart collection
+    app.get('/wishlist', async (req, res) => {
+      const email = req.query.email
+      const query = { email: email }
+      const result = await wishlistCollection.find(query).toArray()
+      res.send(result)
+    })
+    app.delete('/wishlist/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: id }
+      const result = await wishlistCollection.deleteOne(query)
+      res.send(result)
+    })
+
     // purchase related API
     const tran_id = new ObjectId().toString();
 
     app.post("/purchase", async (req, res) => {
       const defaultData = req?.body
-      const product = await itemCollection.findOne({
-        _id: new ObjectId(req.body?.productId),
-      });
-
-      const mongoPurchaseData = {
-        ...product,
-        buyerName: defaultData?.buyerName,
-        buyerPhone: defaultData?.buyerPhone,
-        buyerEmail: defaultData?.buyerEmail,
-        buyerAddress: defaultData?.buyerAddress,
-      }
+     
       const data = {
         total_amount: defaultData?.price,
         currency: defaultData?.currency,
@@ -193,7 +231,7 @@ async function run() {
         cancel_url: "http://localhost:3030/cancel",
         ipn_url: "http://localhost:3030/ipn",
         shipping_method: "Courier",
-        product_name: product?.name,
+        product_name: "product?.name",
         product_category: "Electronic",
         product_profile: "general",
         cus_name: defaultData?.buyerName,
@@ -224,7 +262,7 @@ async function run() {
         res.send({ url: GatewayPageURL });
 
         const finalPurchase = {
-          mongoPurchaseData,
+          defaultData,
           paidStatus: false,
           transactionId: tran_id,
         };
@@ -232,8 +270,8 @@ async function run() {
 
         console.log("Redirecting to: ", GatewayPageURL);
       });
-
-      app.post("/payment/success/:tranId", async (req, res) => {
+    })
+    app.post("/payment/success/:tranId", async (req, res) => {
         // console.log(req.params.tranId);
         const result = await purchaseCollection.updateOne(
           { transactionId: req.params?.tranId },
@@ -265,7 +303,6 @@ async function run() {
         }
       });
 
-    })
     // get all purchase data
     app.get('/purchase', async (req, res) => {
       const result = await purchaseCollection.find().toArray()
